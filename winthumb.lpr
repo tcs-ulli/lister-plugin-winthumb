@@ -40,7 +40,7 @@ var
 
 procedure ListGetDetectString(DetectString:pchar;maxlen:integer); dcpcall;
 begin
-  StrCopy(DetectString, 'EXT="DOC"|EXT="XLS"');
+  StrCopy(DetectString, 'EXT="*"');
 end;
 
 function GetThumbnailOld(const aFileName: UTF8String; aSize: TSize; out Bitmap: HBITMAP): HRESULT;
@@ -114,7 +114,9 @@ var
   pData: Pointer;
   bFile : file;
 begin
-  Result:= nil;
+  Result:= '';
+
+  Bitmap := 0;
 
   if (Win32MajorVersion > 5) then
   begin
@@ -131,7 +133,7 @@ begin
     headerSize := sizeof(BITMAPINFOHEADER)+3*sizeof(RGBQUAD);
     pHeader := AllocMem(headerSize);
     pbmi := LPBITMAPINFO(pHeader);
-    FillChar(pHeader,headerSize,0);
+    FillChar(pHeader^,headerSize,0);
     pbmi^.bmiHeader.biSize := sizeof(BITMAPINFOHEADER);
     pbmi^.bmiHeader.biBitCount := 0;
 
@@ -151,6 +153,7 @@ begin
     Close(bFile);
     Freemem(pHeader);
     Freemem(pData);
+    result := PChar(OutputPath+'thumb.bmp');
   end;
 end;
 
