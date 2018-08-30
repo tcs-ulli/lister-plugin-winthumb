@@ -114,46 +114,50 @@ var
   pData: Pointer;
   bFile : file;
 begin
-  Result:= '';
+  try
+    Result:= '';
 
-  Bitmap := 0;
+    Bitmap := 0;
 
-  if (Win32MajorVersion > 5) then
-  begin
-    Status:= GetThumbnailNew(FileToLoad, Size(width,height), Bitmap);
-  end;
+    if (Win32MajorVersion > 5) then
+    begin
+      Status:= GetThumbnailNew(FileToLoad, Size(width,height), Bitmap);
+    end;
 
-  if Failed(Status) then
-  begin
-    Status:= GetThumbnailOld(FileToLoad, Size(width,height), Bitmap);
-  end;
+    if Failed(Status) then
+    begin
+      Status:= GetThumbnailOld(FileToLoad, Size(width,height), Bitmap);
+    end;
 
-  if Succeeded(Status) then
-  begin
-    headerSize := sizeof(BITMAPINFOHEADER)+3*sizeof(RGBQUAD);
-    pHeader := AllocMem(headerSize);
-    pbmi := LPBITMAPINFO(pHeader);
-    FillChar(pHeader^,headerSize,0);
-    pbmi^.bmiHeader.biSize := sizeof(BITMAPINFOHEADER);
-    pbmi^.bmiHeader.biBitCount := 0;
+    if Succeeded(Status) then
+    begin
+      headerSize := sizeof(BITMAPINFOHEADER)+3*sizeof(RGBQUAD);
+      pHeader := AllocMem(headerSize);
+      pbmi := LPBITMAPINFO(pHeader);
+      FillChar(pHeader^,headerSize,0);
+      pbmi^.bmiHeader.biSize := sizeof(BITMAPINFOHEADER);
+      pbmi^.bmiHeader.biBitCount := 0;
 
-    if (pbmi^.bmiHeader.biSizeImage <= 0) then
-      pbmi^.bmiHeader.biSizeImage:=trunc(pbmi^.bmiHeader.biWidth*abs(pbmi^.bmiHeader.biHeight)*(pbmi^.bmiHeader.biBitCount+7)/8);
-    pData := AllocMem(pbmi^.bmiHeader.biSizeImage);
-    bmf.bfType := $4D42;
-    bmf.bfReserved1 := 0;
-    bmf.bfReserved2 := 0;
-    bmf.bfSize := sizeof(BITMAPFILEHEADER)+ headerSize + pbmi^.bmiHeader.biSizeImage;
-    bmf.bfOffBits := sizeof(BITMAPFILEHEADER) + headerSize;
-    AssignFile(bFile,OutputPath+'thumb.bmp');
-    Rewrite(bFile);
-    BlockWrite(bFile,bmf,sizeof(BITMAPFILEHEADER));
-    BlockWrite(bFile,pbmi^,headerSize);
-    BlockWrite(bFile,pData^,pbmi^.bmiHeader.biSizeImage);
-    Close(bFile);
-    Freemem(pHeader);
-    Freemem(pData);
-    result := PChar(OutputPath+'thumb.bmp');
+      if (pbmi^.bmiHeader.biSizeImage <= 0) then
+        pbmi^.bmiHeader.biSizeImage:=trunc(pbmi^.bmiHeader.biWidth*abs(pbmi^.bmiHeader.biHeight)*(pbmi^.bmiHeader.biBitCount+7)/8);
+      pData := AllocMem(pbmi^.bmiHeader.biSizeImage);
+      bmf.bfType := $4D42;
+      bmf.bfReserved1 := 0;
+      bmf.bfReserved2 := 0;
+      bmf.bfSize := sizeof(BITMAPFILEHEADER)+ headerSize + pbmi^.bmiHeader.biSizeImage;
+      bmf.bfOffBits := sizeof(BITMAPFILEHEADER) + headerSize;
+      AssignFile(bFile,OutputPath+'thumb.bmp');
+      Rewrite(bFile);
+      BlockWrite(bFile,bmf,sizeof(BITMAPFILEHEADER));
+      BlockWrite(bFile,pbmi^,headerSize);
+      BlockWrite(bFile,pData^,pbmi^.bmiHeader.biSizeImage);
+      Close(bFile);
+      Freemem(pHeader);
+      Freemem(pData);
+      result := PChar(OutputPath+'thumb.bmp');
+    end;
+  except
+    Result := '';
   end;
 end;
 
